@@ -3,8 +3,8 @@ import delegate from 'delegate'
 import nanoajax from 'nanoajax'
 import navigo from 'navigo'
 import dom from './lib/dom.js'
-import { 
-  origin, 
+import {
+  origin,
   sanitize,
   saveScrollPosition,
   scrollToLocation,
@@ -62,9 +62,14 @@ export default (options = {}) => {
   })
 
   state.route = `${window.location.pathname}${window.location.search}`
-  state.title = document.title 
+  state.title = document.title
 
   delegate(document, 'a', 'click', (e) => {
+    // Don’t break browser special behavior on links (like page in new window)
+    if (e.which > 1 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+      return
+    }
+
     let a = e.delegateTarget
     let href = a.getAttribute('href') || '/'
     let route = sanitize(href)
@@ -89,14 +94,14 @@ export default (options = {}) => {
   window.onpopstate = e => {
     let to = e.target.location.href
 
-    if (matches(e, to)){ 
+    if (matches(e, to)){
       if (link.isHash(to)){ return }
       window.location.reload()
-      return 
+      return
     }
 
     /**
-     * Popstate bypasses router, so we 
+     * Popstate bypasses router, so we
      * need to tell it where we went to
      * without pushing state
      */
@@ -110,15 +115,15 @@ export default (options = {}) => {
       window.scrollTo(0, history.state.scrollTop)
     }
 
-    window.onbeforeunload = saveScrollPosition 
+    window.onbeforeunload = saveScrollPosition
   }
 
   /**
    * @param {string} route
-   * @param {function} cb 
+   * @param {function} cb
    * @param {boolean} resolve Use navigo.resolve(), bypass navigo.navigate()
    *
-   * Popstate changes the URL for us, so if we were to 
+   * Popstate changes the URL for us, so if we were to
    * router.navigate() to the previous location, it would push
    * a duplicate route to history and we would create a loop.
    *
@@ -136,7 +141,7 @@ export default (options = {}) => {
 
     let req = get(`${origin}/${to}`, title => {
       resolve ? router.resolve(to) : router.navigate(to)
-      
+
       // Update state
       pushRoute(to, title)
 
@@ -153,14 +158,14 @@ export default (options = {}) => {
   }
 
   function get(route, cb){
-    return nanoajax.ajax({ 
-      method: 'GET', 
-      url: route 
+    return nanoajax.ajax({
+      method: 'GET',
+      url: route
     }, (status, res, req) => {
       if (req.status < 200 || req.status > 300 && req.status !== 304){
         return window.location = `${origin}/${state._state.prev.route}`
       }
-      render(req.response, cb) 
+      render(req.response, cb)
     })
   }
 
@@ -176,7 +181,7 @@ export default (options = {}) => {
         if (res){ events.emit(t[0], {route, event}) }
         return res
       } else {
-        return t(route) 
+        return t(route)
       }
     }).length > 0 ? true : false
   }
