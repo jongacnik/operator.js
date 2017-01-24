@@ -84,9 +84,9 @@ export default (options = {}) => {
 
     e.preventDefault()
 
-    if (
-      link.isSameURL(href)
-    ){ return }
+    // if (
+    //   link.isSameURL(href)
+    // ){ return }
 
     go(`${origin}/${route}`)
   })
