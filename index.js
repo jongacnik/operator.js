@@ -91,21 +91,28 @@ export default (options = {}) => {
     go(`${origin}/${route}`)
   })
 
+  // catch ghost Safari 8 popstate
+  var poporder = window.history.state !== null ? (window.history.state.order || 0) : 0
+
   window.onpopstate = e => {
-    let to = e.target.location.href
+    if (window.history.state !== null && window.history.state.order !== poporder) {
+      let to = e.target.location.href
 
-    if (matches(e, to)){
-      if (link.isHash(to)){ return }
-      window.location.reload()
-      return
+      if (matches(e, to)){
+        if (link.isHash(to)){ return }
+        window.location.reload()
+        return
+      }
+
+      /**
+       * Popstate bypasses router, so we
+       * need to tell it where we went to
+       * without pushing state
+       */
+      go(to, null, true)
+    } else {
+      // ghost Safari 8
     }
-
-    /**
-     * Popstate bypasses router, so we
-     * need to tell it where we went to
-     * without pushing state
-     */
-    go(to, null, true)
   }
 
   if ('scrollRestoration' in history){
